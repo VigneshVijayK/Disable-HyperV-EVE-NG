@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
 
 $ApiBase = "https://disable-hyperv-license-api.onrender.com"
+$BuyUrl  = "https://vigneshvijayk.github.io/VigneshVijayK/"
 
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  HYPER-V COMPLETE DISABLER" -ForegroundColor Cyan
@@ -14,7 +15,22 @@ try {
 
     if (-not $Response.valid) {
         Write-Host "`n  LICENSE ERROR: $($Response.error)" -ForegroundColor Red
-        Write-Host "  Visit https://github.com/VigneshVijayK/Disable-HyperV-EVE-NG`n" -ForegroundColor Red
+
+        if ($Response.error -eq "License expired") {
+            Write-Host "`n  Press R to renew your license, or any other key to exit." -ForegroundColor Yellow
+            $choice = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            if ($choice.Character -eq 'R' -or $choice.Character -eq 'r') {
+                Write-Host "`n  Opening renewal page..." -ForegroundColor Green
+                Start-Process $BuyUrl
+            }
+        } else {
+            Write-Host "`n  Press B to buy a license, or any other key to exit." -ForegroundColor Yellow
+            $choice = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            if ($choice.Character -eq 'B' -or $choice.Character -eq 'b') {
+                Write-Host "`n  Opening purchase page..." -ForegroundColor Green
+                Start-Process $BuyUrl
+            }
+        }
         exit 1
     }
 
@@ -23,6 +39,12 @@ try {
 catch {
     Write-Host "`n  ERROR: Could not contact license server." -ForegroundColor Red
     Write-Host "  Check your internet connection or try again later.`n" -ForegroundColor Red
+    Write-Host "`n  Press R to report this to the developer, or any other key to exit." -ForegroundColor Yellow
+    $choice = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    if ($choice.Character -eq 'R' -or $choice.Character -eq 'r') {
+        Write-Host "`n  Opening report page..." -ForegroundColor Green
+        Start-Process $BuyUrl
+    }
     exit 1
 }
 
