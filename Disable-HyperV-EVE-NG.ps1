@@ -1,7 +1,8 @@
 #Requires -RunAsAdministrator
 
-$ApiBase = "https://disable-hyperv-license-api.onrender.com"
-$BuyUrl  = "https://vigneshvijayk.github.io/VigneshVijayK/"
+$ApiBase   = "https://disable-hyperv-license-api.onrender.com"
+$BuyUrl    = "https://vigneshvijayk.github.io/VigneshVijayK/"
+$LinkedIn  = "https://in.linkedin.com/in/vignesh-vijay-k"
 
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  HYPER-V COMPLETE DISABLER" -ForegroundColor Cyan
@@ -66,6 +67,9 @@ try {
 
     Write-Host "Executing...`n" -ForegroundColor Green
     Invoke-Expression $ScriptContent
+
+    Write-Host "`n  Thank you for using Hyper-V Disabler!" -ForegroundColor Cyan
+    Start-Process $LinkedIn
 }
 catch {
     Write-Host "Download failed: $_" -ForegroundColor Red

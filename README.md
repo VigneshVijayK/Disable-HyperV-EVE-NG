@@ -2,7 +2,7 @@
 
 > Fully automated script to disable Hyper-V, VBS, Device Guard, Credential Guard, and Memory Integrity on Windows 10 / 11 — including 24H2.
 
-**By [VigneshVijayK](https://github.com/VigneshVijayK)**
+**By [VigneshVijayK](https://github.com/VigneshVijayK)** | [LinkedIn](https://in.linkedin.com/in/vignesh-vijay-k)
 
 ---
 
