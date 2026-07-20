@@ -1,6 +1,6 @@
 #Requires -RunAsAdministrator
 
-$ApiBase   = "https://disable-hyperv-license-api.onrender.com"
+$ApiBase   = "https://disable-hyperv-license-api-0n56.onrender.com"
 $BuyUrl    = "https://vigneshvijayk.github.io/VigneshVijayK/"
 $LinkedIn  = "https://in.linkedin.com/in/vignesh-vijay-k"
 
