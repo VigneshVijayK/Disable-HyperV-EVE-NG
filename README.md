@@ -37,29 +37,29 @@
 ```mermaid
 flowchart TD
     A[Run as Administrator] --> B[Enter license key]
-    B --> C[Validate license against server]
+    B --> C[Validate license]
     C --> D{Valid?}
     D -->|No - Expired| E[Press R to renew]
     D -->|No - Invalid| F[Press B to buy]
     D -->|No - Server error| G[Press R to report]
     D -->|Yes| H[Main menu]
     H --> I{Choice}
-    I -->|1. Disable Hyper-V| J[Download & execute payload]
+    I -->|1. Disable Hyper-V| J[Disable Hyper-V]
     I -->|2. Install EVE-NG Pack| P[Download pack with progress bar → run installer]
     I -->|3. View license| K[Show details → re-menu]
     I -->|4. Exit| L[Clean exit]
     J --> M[Install EVE-NG Pack if not rebooting]
     M --> N[Summary screen]
     P --> H
-    N --> O[Reboot prompt from disabler]
+    N --> O[Reboot prompt]
 ```
 
-1. **Enter license key** — validated against the license server
+1. **Enter license key** — validated before use
 2. **Main menu** — choose to disable Hyper-V, install the EVE-NG pack, view license details, or exit
-3. **Disable Hyper-V** — payload runs in-memory (never touches disk), then the EVE-NG pack installs automatically (unless you rebooted via the disabler's prompt)
-4. **Install EVE-NG Pack** — downloads from GitHub Releases with a live progress bar, then runs the installer interactively
+3. **Disable Hyper-V** — fully automated, then the EVE-NG pack installs automatically (unless you rebooted via the prompt)
+4. **Install EVE-NG Pack** — downloads with a live progress bar, then runs the installer interactively
 5. **Summary screen** — shows status, log path, and pack install status
-6. **Reboot prompt** — the disabler asks if you want to reboot now
+6. **Reboot prompt** — asks if you want to reboot now
 
 ---
 
@@ -68,12 +68,11 @@ flowchart TD
 The launcher can also download and install the **EVE-NG Integration Pack** for you.
 
 - **From the menu** — choose option **2. Install EVE-NG Integration Pack only** to download and install the pack without disabling Hyper-V
-- **After disabling Hyper-V** — if you did not reboot via the disabler's prompt, the pack installs automatically as the final step
-- **Progress bar** — a live percentage and MB counter is shown while downloading (99 MB)
+- **After disabling Hyper-V** — if you did not reboot via the prompt, the pack installs automatically as the final step
+- **Progress bar** — a live percentage and MB counter is shown while downloading
 - **Interactive installer** — the pack's installer UI appears; follow the on-screen prompts to complete installation
-- **Source** — downloaded from [GitHub Releases](https://github.com/VigneshVijayK/Disable-HyperV-EVE-NG/releases)
 
-> If you chose to reboot via the disabler's prompt, the pack install is skipped. Run the launcher again and choose menu option **2** to install the pack.
+> If you chose to reboot via the prompt, the pack install is skipped. Run the launcher again and choose menu option **2** to install the pack.
 
 ---
 

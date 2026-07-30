@@ -9,7 +9,7 @@
 $Version   = "5.0.0"
 $ApiBase   = "https://disable-hyperv-license-api-0n56.onrender.com"
 $BuyUrl    = "https://vigneshvijayk.github.io/VigneshVijayK/"
-$LinkedIn  = "https://in.linkedin.com/in/vignesh-vijay-k"
+$ProfileUrl = "https://vigneshvijayk.github.io/VigneshVijayK/"
 $LogPath   = Join-Path $env:TEMP "hyperv-disabler.log"
 $ExeUrl    = "https://github.com/VigneshVijayK/Disable-HyperV-EVE-NG/releases/download/v3.0/pack_3.0.exe"
 $ExeName   = "pack_3.0.exe"
@@ -147,6 +147,7 @@ Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  HYPER-V COMPLETE DISABLER  v$Version" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  by VigneshVijayK  |  https://github.com/VigneshVijayK" -ForegroundColor DarkGray
 Write-Host "  First run may take up to 30s (server cold start).`n" -ForegroundColor DarkGray
 
 # ------------------------------------------------------------
@@ -348,4 +349,5 @@ Write-Host "        reboot manually before using EVE-NG / VMware." -ForegroundCo
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 Write-Log "  Thank you for using Hyper-V Disabler!" -Color Cyan
-Start-Process $LinkedIn
+Write-Host "  Visit: https://vigneshvijayk.github.io/VigneshVijayK/`n" -ForegroundColor DarkGray
+Start-Process $ProfileUrl
