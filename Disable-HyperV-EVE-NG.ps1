@@ -316,8 +316,17 @@ if (Test-Path $LauncherTranscript) {
 # ------------------------------------------------------------
 Write-Log "  Note: If you rebooted via the prompt above, this step was skipped." -Color Yellow
 Write-Log "        You can install the pack later via menu option 2." -Color Yellow
-Write-Step 4 5 "Downloading and installing EVE-NG Integration Pack..."
-$ExeInstalled = Install-EveNgPack
+Write-Host ""
+Write-Host "  Do you want to install the EVE-NG Integration Pack now? (Y/N)" -ForegroundColor Yellow
+$packChoice = (Read-Host "  Enter your choice").Trim()
+$ExeInstalled = $false
+if ($packChoice -match '^[Yy]') {
+    Write-Step 4 5 "Downloading and installing EVE-NG Integration Pack..."
+    $ExeInstalled = Install-EveNgPack
+} else {
+    Write-Log "  User chose to skip EVE-NG Integration Pack install." -Color DarkGray
+    Write-Log "  You can install it later via menu option 2." -Color Yellow
+}
 
 # ------------------------------------------------------------
 # [5/5] SUMMARY SCREEN
