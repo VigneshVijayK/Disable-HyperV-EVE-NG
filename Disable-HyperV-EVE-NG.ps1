@@ -32,7 +32,7 @@ function Write-Log {
 
 # ------------------------------------------------------------
 # Helper: Write-Step
-#   Prints a numbered step header like [1/4] Validating...
+#   Prints a numbered step header like [1/5] Validating...
 # ------------------------------------------------------------
 function Write-Step {
     param(
@@ -55,6 +55,84 @@ function Get-MaskedKey {
     return ("X" * ($Key.Length - 4)) + $Key.Substring($Key.Length - 4)
 }
 
+# ------------------------------------------------------------
+# Helper: Install-EveNgPack
+#   Downloads the EVE-NG Integration Pack from GitHub Releases
+#   and runs the installer interactively (user sees the installer UI).
+#   Returns $true if installed, $false otherwise.
+#   Used by both the menu (option 2) and the end of the full flow.
+# ------------------------------------------------------------
+function Install-EveNgPack {
+    $ExePath = Join-Path $env:TEMP $ExeName
+    try {
+        Write-Log "  Downloading from GitHub Releases (99MB - please wait)..." -Color Yellow
+
+        # Stream-based download with a visible progress bar.
+        # Invoke-WebRequest's built-in progress can be unreliable for large
+        # files, so we read the response stream in chunks and update
+        # Write-Progress manually.
+        $request  = [System.Net.HttpWebRequest]::Create($ExeUrl)
+        $request.Timeout = 120000
+        $response = $request.GetResponse()
+        $totalBytes = $response.ContentLength
+        $reader  = New-Object System.IO.BinaryReader($response.GetResponseStream())
+        $stream  = [System.IO.File]::Create($ExePath)
+        $buffer  = New-Object byte[] 81920
+        $downloaded = 0
+
+        while (($read = $reader.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $stream.Write($buffer, 0, $read)
+            $downloaded += $read
+            if ($totalBytes -gt 0) {
+                $pct = [math]::Round(($downloaded / $totalBytes) * 100, 1)
+                $dlMB = [math]::Round($downloaded / 1MB, 1)
+                $totMB = [math]::Round($totalBytes / 1MB, 1)
+                Write-Progress -Activity "Downloading EVE-NG Integration Pack" `
+                    -Status "$pct%  ($dlMB MB / $totMB MB)" `
+                    -PercentComplete $pct
+            }
+        }
+        $stream.Close()
+        $reader.Close()
+        $response.Close()
+        Write-Progress -Activity "Downloading EVE-NG Integration Pack" -Completed
+
+        if (-not (Test-Path $ExePath)) {
+            Write-Log "  EXE download failed - file not saved." -Color Red
+            return $false
+        }
+        if ((Get-Item $ExePath).Length -eq 0) {
+            Write-Log "  EXE download failed - file is empty." -Color Red
+            return $false
+        }
+        $sizeMB = [math]::Round((Get-Item $ExePath).Length / 1MB, 1)
+        Write-Log "  Integration pack downloaded ($sizeMB MB)" -Color Green
+
+        Write-Log "  Launching installer - please follow the on-screen prompts..." -Color Yellow
+        # Use the call operator (&) instead of Start-Process -Wait.
+        # Start-Process -Wait can hang when an installer spawns a child
+        # process (common with NSIS / Inno / self-extracting EXEs) because
+        # it waits on the launcher process which exits immediately. The
+        # call operator runs synchronously in the current session and
+        # returns reliably when the installer finishes.
+        & $ExePath
+        $exitCode = $LASTEXITCODE
+        if ($null -eq $exitCode -or $exitCode -eq 0) {
+            Write-Log "  Integration pack installed successfully." -Color Green
+        } else {
+            Write-Log "  Installer exited with code $exitCode" -Color Yellow
+        }
+        return $true
+    }
+    catch {
+        Write-Log "  EXE download/install failed: $_" -Color Red
+        return $false
+    }
+    finally {
+        Remove-Item -Path $ExePath -ErrorAction SilentlyContinue
+    }
+}
+
 # ============================================================
 #  START
 # ============================================================
@@ -72,7 +150,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  First run may take up to 30s (server cold start).`n" -ForegroundColor DarkGray
 
 # ------------------------------------------------------------
-# [1/4] LICENSE INPUT + VALIDATION
+# [1/5] LICENSE INPUT + VALIDATION
 # ------------------------------------------------------------
 $LicenseKey = Read-Host "Enter your license key"
 if ([string]::IsNullOrWhiteSpace($LicenseKey)) {
@@ -135,18 +213,24 @@ while ($menuLoop) {
     Write-Host "----------------------------------------" -ForegroundColor Cyan
     Write-Host "  What would you like to do?" -ForegroundColor Cyan
     Write-Host "----------------------------------------" -ForegroundColor Cyan
-    Write-Host "    1. Proceed to disable Hyper-V" -ForegroundColor White
-    Write-Host "    2. View license details" -ForegroundColor White
-    Write-Host "    3. Exit" -ForegroundColor White
+    Write-Host "    1. Disable Hyper-V (full process)" -ForegroundColor White
+    Write-Host "    2. Install EVE-NG Integration Pack only" -ForegroundColor White
+    Write-Host "    3. View license details" -ForegroundColor White
+    Write-Host "    4. Exit" -ForegroundColor White
     Write-Host "----------------------------------------" -ForegroundColor Cyan
-    $menuChoice = (Read-Host "Enter your choice (1-3)").Trim()
+    $menuChoice = (Read-Host "Enter your choice (1-4)").Trim()
 
     switch ($menuChoice) {
         "1" {
-            Write-Log "  User chose: Proceed to disable Hyper-V" -Color DarkGray
+            Write-Log "  User chose: Disable Hyper-V (full process)" -Color DarkGray
             $menuLoop = $false
         }
         "2" {
+            Write-Log "  User chose: Install EVE-NG Integration Pack only" -Color DarkGray
+            $null = Install-EveNgPack
+            Write-Log "  Returning to menu...`n" -Color DarkGray
+        }
+        "3" {
             Write-Host ""
             Write-Host "  License Details" -ForegroundColor Cyan
             Write-Host "  --------------------------------" -ForegroundColor Cyan
@@ -155,18 +239,18 @@ while ($menuLoop) {
             Write-Host "  --------------------------------`n" -ForegroundColor Cyan
             Write-Log "  User viewed license details" -Color DarkGray
         }
-        "3" {
+        "4" {
             Write-Log "  User chose: Exit" -Color DarkGray
             exit 0
         }
         default {
-            Write-Host "`n  Invalid choice. Please enter 1, 2, or 3.`n" -ForegroundColor Red
+            Write-Host "`n  Invalid choice. Please enter 1, 2, 3, or 4.`n" -ForegroundColor Red
         }
     }
 }
 
 # ------------------------------------------------------------
-# [2/4] DOWNLOAD PAYLOAD
+# [2/5] DOWNLOAD PAYLOAD
 # ------------------------------------------------------------
 Write-Step 2 5 "Downloading script..."
 try {
@@ -192,7 +276,7 @@ catch {
 }
 
 # ------------------------------------------------------------
-# [3/4] EXECUTE PAYLOAD
+# [3/5] EXECUTE PAYLOAD
 # ------------------------------------------------------------
 Write-Step 3 5 "Executing..."
 $LauncherTranscript = Join-Path $env:TEMP "hyperv-launcher-capture.log"
@@ -229,39 +313,10 @@ if (Test-Path $LauncherTranscript) {
 # ------------------------------------------------------------
 # [4/5] DOWNLOAD AND INSTALL EVE-NG INTEGRATION PACK
 # ------------------------------------------------------------
-Write-Step 4 5 "Downloading EVE-NG Integration Pack..."
-$ExePath = Join-Path $env:TEMP $ExeName
-$ExeInstalled = $false
-try {
-    # Download the EXE from GitHub Releases (99MB — allow extra time)
-    Invoke-WebRequest -Uri $ExeUrl -OutFile $ExePath -UseBasicParsing -TimeoutSec 120
-    if (-not (Test-Path $ExePath)) {
-        Write-Log "  EXE download failed - file not saved." -Color Red
-    } elseif ((Get-Item $ExePath).Length -eq 0) {
-        Write-Log "  EXE download failed - file is empty." -Color Red
-    } else {
-        $sizeMB = [math]::Round((Get-Item $ExePath).Length / 1MB, 1)
-        Write-Log "  Integration pack downloaded ($sizeMB MB)" -Color Green
-
-        Write-Step 5 5 "Installing EVE-NG Integration Pack..."
-        Write-Log "  Launching installer - please follow the on-screen prompts..." -Color Yellow
-        # Run the EXE normally (interactive installer) and wait for it to finish
-        $proc = Start-Process -FilePath $ExePath -Wait -PassThru
-        if ($proc.ExitCode -eq 0) {
-            Write-Log "  Integration pack installed successfully." -Color Green
-        } else {
-            Write-Log "  Installer exited with code $($proc.ExitCode)" -Color Yellow
-        }
-        $ExeInstalled = $true
-    }
-}
-catch {
-    Write-Log "  EXE download/install failed: $_" -Color Red
-}
-finally {
-    # Clean up the downloaded EXE from temp
-    Remove-Item -Path $ExePath -ErrorAction SilentlyContinue
-}
+Write-Log "  Note: If you rebooted via the prompt above, this step was skipped." -Color Yellow
+Write-Log "        You can install the pack later via menu option 2." -Color Yellow
+Write-Step 4 5 "Downloading and installing EVE-NG Integration Pack..."
+$ExeInstalled = Install-EveNgPack
 
 # ------------------------------------------------------------
 # [5/5] SUMMARY SCREEN
